@@ -24,6 +24,9 @@ public class User implements UserDetails {
 
     private String role; // Ex: "ROLE_DOCTOR", "ROLE_PATIENT"
 
+    @Column(unique = true, nullable = false)
+    private String email;
+
     public User() {}
 
     public User(Long id, String username, String password, String role) {
@@ -78,5 +81,13 @@ public class User implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 }
