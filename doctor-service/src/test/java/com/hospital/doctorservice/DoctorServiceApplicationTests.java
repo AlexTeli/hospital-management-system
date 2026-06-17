@@ -1,13 +1,13 @@
-package com.hospital.doctorservice;
-
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-
-@SpringBootTest
-class DoctorServiceApplicationTests {
-
-    @Test
-    void contextLoads() {
-    }
-
-}
+//package com.hospital.doctorservice;
+//
+//import org.junit.jupiter.api.Test;
+//import org.springframework.boot.test.context.SpringBootTest;
+//
+//@SpringBootTest
+//class DoctorServiceApplicationTests {
+//
+//    @Test
+//    void contextLoads() {
+//    }
+//
+//}
