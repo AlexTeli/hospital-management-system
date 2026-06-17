@@ -1,36 +1,158 @@
 version: '3.8'
+
 services:
-  # Microservicii
+  # ==========================================
+  # 1. INFRASTRUCTURĂ (BAZE DE DATE & BROKER)
+  # ==========================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: hospital-postgres
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+      POSTGRES_DB: hospital_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d # Rulează automat scriptul .sh la prima inițializare
+    networks:
+      - hospital-network
+
+  mongodb:
+    image: mongo:latest
+    container_name: hospital-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - hospital-network
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: hospital-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - hospital-network
+
+  # ==========================================
+  # 2. MICROSERVICIILE APLICAȚIEI (JAVA/SPRING)
+  # ==========================================
   auth-service:
     build: ./auth-service
-    ports: ["8081:8080"]
+    container_name: auth-service
+    ports:
+      - "8085:8085"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/auth_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres123
+    depends_on:
+      - postgres
+    networks:
+      - hospital-network
+
   patient-service:
     build: ./patient-service
-    ports: ["8082:8080"]
+    container_name: patient-service
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/patient_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres123
+    depends_on:
+      - postgres
+    networks:
+      - hospital-network
+
   doctor-service:
     build: ./doctor-service
-    ports: ["8083:8080"]
+    container_name: doctor-service
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/doctor_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres123
+    depends_on:
+      - postgres
+    networks:
+      - hospital-network
+
   appointment-service:
     build: ./appointment-service
-    ports: ["8084:8080"]
+    container_name: appointment-service
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/appointment_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres123
+      - PATIENT_SERVICE_URL=http://patient-service:8081
+      - DOCTOR_SERVICE_URL=http://doctor-service:8083
+    depends_on:
+      - postgres
+      - patient-service
+      - doctor-service
+    networks:
+      - hospital-network
+
   medical-records-service:
     build: ./medical-records-service
-    ports: ["8085:8080"]
+    container_name: medical-records-service
+    ports:
+      - "8084:8084"
+    environment:
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/medical_records_db
+    depends_on:
+      - mongodb
+    networks:
+      - hospital-network
+
   billing-service:
     build: ./billing-service
-    ports: ["8086:8080"]
+    container_name: billing-service
+    ports:
+      - "8086:8086"
+    environment:
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/billing_db
+    depends_on:
+      - mongodb
+    networks:
+      - hospital-network
+
   notification-service:
     build: ./notification-service
-    ports: ["8087:8080"]
+    container_name: notification-service
+    ports:
+      - "8087:8087"
+    environment:
+      - SPRING_RABBITMQ_HOST=rabbitmq
+    depends_on:
+      - rabbitmq
+    networks:
+      - hospital-network
+
   analytics-service:
     build: ./analytics-service
-    ports: ["8088:8080"]
-
-  # Baze de date
-  db-postgres:
-    image: postgres:15
+    container_name: analytics-service
+    ports:
+      - "8088:8088"
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-  db-mongo:
-    image: mongo:6.0
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/analytics_db
+    depends_on:
+      - mongodb
+    networks:
+      - hospital-network
+
+networks:
+  hospital-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  mongo_data:
