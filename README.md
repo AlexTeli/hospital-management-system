@@ -56,13 +56,13 @@ Sistemul este pregatit pentru a fi rulat atat local, cat si in medii Cloud (IaaS
    git clone <url-repository-proiect>
    cd hospital-management-platform
 
-2.**Compilati microserviciile** (generarea fisierelor .jar):
+ 2.**Compilati microserviciile** (generarea fisierelor .jar):
 Rulati scriptul de build in radacina proiectului unde se afla modulele:
    
    mvn clean package -DskipTests
 
    
-3.**Lansarea intregului ecosistem in Docker**:
+ 3.**Lansarea intregului ecosistem in Docker**:
 Folositi Docker Compose pentru a porni cele 8 microservicii, bazele de date (PostgreSQL, MySQL, MongoDB) si API Gateway-ul:
 
    docker-compose up --build
