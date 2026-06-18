@@ -35,4 +35,8 @@ public class AppointmentService {
             return appointmentRepository.save(appointment);
         });
     }
+
+    public Appointment updateAppointment(Appointment appointment) {
+        return appointmentRepository.save(appointment);
+    }
 }

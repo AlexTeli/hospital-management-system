@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/appointments")
 public class AppointmentController {
@@ -32,6 +33,18 @@ public class AppointmentController {
     @PostMapping
     public Appointment createAppointment(@RequestBody Appointment appointment) {
         return appointmentService.createAppointment(appointment);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Appointment> updateAppointmentStatus(@PathVariable Long id, @RequestBody Appointment updatedAppointment) {
+        return appointmentService.getAppointmentById(id)
+                .map(existingAppointment -> {
+                    existingAppointment.setStatus(updatedAppointment.getStatus());
+
+                    Appointment savedAppointment = appointmentService.updateAppointment(existingAppointment);
+                    return ResponseEntity.ok(savedAppointment);
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{id}/cancel")
